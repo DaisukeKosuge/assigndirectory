@@ -1,0 +1,216 @@
+/* styles.css */
+@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@300;400;700&display=swap');
+
+body {
+    font-family: 'Comic Neue', cursive;
+    background-color: #ffebf0;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+#main {
+    text-align: center;
+    margin-top: 20px;
+    width: 90%;
+    max-width: 1200px;
+}
+
+#addPersonBtn {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #ff69b4;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+#addPersonBtn:hover {
+    background-color: #ff1493;
+    transform: scale(1.1);
+}
+
+#searchContainer {
+    margin-top: 20px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+#searchBox {
+    width: 60%;
+    padding: 10px;
+    font-size: 16px;
+    border: 2px solid #ff69b4;
+    border-radius: 5px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+#searchBtn {
+    padding: 10px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #ff69b4;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+#searchBtn:hover {
+    background-color: #ff1493;
+    transform: scale(1.1);
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+    padding-top: 60px;
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 5% auto;
+    padding: 20px;
+    border: 2px solid #ff69b4;
+    border-radius: 10px;
+    width: 80%;
+    max-width: 500px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+}
+
+#projectContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+    width: 100%;
+}
+
+.project, .category, .company, .department, .section {
+    margin: 10px 0;
+    padding: 10px;
+    border: 2px solid #ff69b4;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 600px;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: background-color 0.3s, box-shadow 0.3s, transform 0.3s;
+}
+
+.project h2, .category h3, .company h4, .department h5, .section h6 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0;
+    cursor: pointer;
+    color: #ff69b4;
+    user-select: none;
+}
+
+.project h2:hover, .category h3:hover, .company h4:hover, .department h5:hover, .section h6:hover {
+    background-color: #ffe4e1;
+}
+
+.arrow {
+    margin-left: 10px;
+    transition: transform 0.3s;
+}
+
+.collapsed .arrow {
+    transform: rotate(-90deg);
+}
+
+.person {
+    border: 2px solid #ff69b4;
+    border-radius: 8px;
+    padding: 10px;
+    margin: 10px 0;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: background-color 0.3s, transform 0.3s;
+    width: calc(100% - 20px); /* カードが親要素の幅に対してはみ出さないようにする */
+}
+
+.person:hover {
+    background-color: #ffe4e1;
+    transform: scale(1.05);
+}
+
+.person img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+    border: 2px solid #ff69b4;
+}
+
+.person h3 {
+    margin: 0;
+    flex-grow: 1;
+    font-weight: 400;
+    color: #ff69b4;
+}
+
+.person p {
+    margin: 5px 0;
+    font-size: 14px;
+    color: #666;
+}
+
+/* 強調表示用のスタイル */
+.highlight {
+    background-color: yellow;
+}
+
+/* メディアクエリ */
+@media (max-width: 768px) {
+    #searchBox {
+        width: 100%;
+        margin-right: 0;
+    }
+
+    #searchBtn {
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .project, .category, .company, .department, .section {
+        width: 90%;
+    }
+}

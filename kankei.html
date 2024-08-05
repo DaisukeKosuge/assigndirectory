@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>アサイン案件名鑑</title>
+    <link rel="stylesheet" href="css/kankei.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>アサイン案件名鑑</h1>
+    <div id="main">
+        <div id="searchContainer">
+            <input type="text" id="searchBox" placeholder="名前で検索...">
+            <button id="searchBtn">検索</button>
+        </div>
+        <div id="projectContainer"></div>
+    </div>
+
+    <button id="addPersonBtn">人物を追加</button>
+
+    <!-- モーダル -->
+    <div id="personModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>人物を追加</h2>
+            <form id="personForm">
+                <label for="projectName">案件名:</label>
+                <input type="text" id="projectName" name="projectName" required><br>
+
+                <label for="category">ジャンル:</label>
+                <select id="category" name="category" required>
+                    <option value="お客様">お客様</option>
+                    <option value="ベンダ">ベンダ</option>
+                    <option value="関連企業">関連企業</option>
+                </select><br>
+
+                <label for="companyName">会社名:</label>
+                <input type="text" id="companyName" name="companyName" required><br>
+
+                <label for="relatedDetail">担当内容 (関連企業の場合):</label>
+                <input type="text" id="relatedDetail" name="relatedDetail"><br>
+                
+                <label for="department">部:</label>
+                <input type="text" id="department" name="department" required><br>
+                
+                <label for="section">課:</label>
+                <input type="text" id="section" name="section" required><br>
+                
+                <label for="personName">人物名:</label>
+                <input type="text" id="personName" name="personName" required><br>
+                
+                <label for="personImage">人物の画像 (URL):</label>
+                <input type="text" id="personImage" name="personImage"><br>
+                
+                <label for="description">詳細情報:</label>
+                <textarea id="description" name="description"></textarea><br>
+                
+                <button type="submit">追加</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // scripts.js
+$(document).ready(function() {  
+    var projects = JSON.parse(localStorage.getItem('projects')) || {}; //ローカルストレージから保存されたプロジェクトデータを取得し、JSONオブジェクトに変換 
+
+    function saveProjects() {
+        localStorage.setItem('projects', JSON.stringify(projects)); //オブジェクトをJSON文字列に変換し、ローカルストレージに保存
+    }
+
+    function addPersonToChart(person) {
+        if (!person || !person.project || !person.category || !person.company || !person.department || !person.section) {
+            console.error('Invalid person data:', person); //必須プロパティが存在するかどうかを確認します。存在しない場合はエラーメッセージをコンソールに出力
+            return;
+        }
+
+        var projectId = person.project.replace(/\s+/g, '-'); //プロジェクト名の空白をハイフンに置換することでHTML要素のIDとして使用できるようにする
+        var categoryId = person.category.replace(/\s+/g, '-');
+        var companyId = person.company.replace(/\s+/g, '-');
+        var departmentId = person.department.replace(/\s+/g, '-');
+        var sectionId = person.section.replace(/\s+/g, '-');
+        
+        var projectDiv = $('#' + projectId); //プロジェクト名に対応する要素がすでに存在するかどうかを確認
+        if (projectDiv.length === 0) { //もし存在しなければ
+            projectDiv = $('<div class="project" id="' + projectId + '"></div>'); //新しいプロジェクト要素の作成を行って
+            projectDiv.append('<h2 class="toggle collapsed" data-target="' + projectId + '-categories">' + person.project + '<span class="arrow">▼</span></h2>');　//プロジェクト名の見出しを追加し
+            projectDiv.append('<div id="' + projectId + '-categories" class="categories" style="display:none;"></div>'); //カテゴリコンテナの追加をする
+            $('#projectContainer').append(projectDiv); //そしてそれらをprojectContainer要素に追加する
+        }
+
+        var categoriesDiv = $('#' + projectId + '-categories'); //プロジェクト内のカテゴリ(お客様,ベンダ,関連企業)のコンテナ要素を取得
+        var categoryDiv = categoriesDiv.find('#' + categoryId); //カテゴリ名に対応する要素がすでに存在するかどうかを確認
+        if (categoryDiv.length === 0) {
+            categoryDiv = $('<div class="category" id="' + categoryId + '"></div>');//以下同じ事の繰り返し
+            categoryDiv.append('<h3 class="toggle collapsed" data-target="' + categoryId + '-companies">' + person.category + '<span class="arrow">▼</span></h3>');
+            categoryDiv.append('<div id="' + categoryId + '-companies" class="companies" style="display:none;"></div>');
+            categoriesDiv.append(categoryDiv);
+        }
+
+        var companiesDiv = $('#' + categoryId + '-companies'); //カテゴリ内の会社のコンテナ要素取得
+        var companyDiv = companiesDiv.find('#' + companyId);
+        if (companyDiv.length === 0) {
+            companyDiv = $('<div class="company" id="' + companyId + '"></div>');
+            var companyHeader = '<h4 class="toggle collapsed" data-target="' + companyId + '-departments">' + person.company;
+            if (person.category === '関連企業' && person.relatedDetail) {
+                companyHeader += ' (' + person.relatedDetail + ')';
+            }
+            companyHeader += '<span class="arrow">▼</span></h4>';
+            companyDiv.append(companyHeader);
+            companyDiv.append('<div id="' + companyId + '-departments" class="departments" style="display:none;"></div>');
+            companiesDiv.append(companyDiv);
+        }
+
+        var departmentsDiv = $('#' + companyId + '-departments'); //会社内の部のコンテナ要素取得
+        var departmentDiv = departmentsDiv.find('#' + departmentId);
+        if (departmentDiv.length === 0) {
+            departmentDiv = $('<div class="department" id="' + departmentId + '"></div>');
+            departmentDiv.append('<h5 class="toggle collapsed" data-target="' + departmentId + '-sections">' + person.department + '<span class="arrow">▼</span></h5>');
+            departmentDiv.append('<div id="' + departmentId + '-sections" class="sections" style="display:none;"></div>');
+            departmentsDiv.append(departmentDiv);
+        }
+
+        var sectionsDiv = $('#' + departmentId + '-sections'); //部内の課のコンテナ要素取得
+        var sectionDiv = sectionsDiv.find('#' + sectionId);
+        if (sectionDiv.length === 0) {
+            sectionDiv = $('<div class="section" id="' + sectionId + '"></div>');
+            sectionDiv.append('<h6 class="toggle collapsed" data-target="' + sectionId + '-people">' + person.section + '<span class="arrow">▼</span></h6>');
+            sectionDiv.append('<div id="' + sectionId + '-people" class="people" style="display:none;"></div>');
+            sectionsDiv.append(sectionDiv);
+        }
+
+        var $personDiv = $('<div class="person"></div>'); //新しい人物カード要素を作成
+        if (person.image) {
+            $personDiv.append('<img src="' + person.image + '" alt="' + person.name + '">'); //画像があったらそれも追加する
+        }
+        $personDiv.append('<h3>' + person.name + '</h3>'); //人物名追加
+        $personDiv.append('<p>' + person.description + '</p>'); //人物の説明追加
+        $('#' + sectionId + '-people').append($personDiv); //課のカード内に人物カードが出るように要素を追加
+    }
+
+    //ローカルストレージから読み込んだプロジェクトデータを使って、すべての人物を関係図に追加する(ページがリロードされた際にローカルストレージから読み込まれたプロジェクトデータが関係図に反映されるようにする)
+    $.each(projects, function(project, projectPeople) { //キーがproject,値がprojectpeopleである、projectsオブジェクトに対して以下の反復処理を行う
+        projectPeople.forEach(function(person) {
+            addPersonToChart(person);
+        });
+    });
+
+    $('#addPersonBtn').click(function() {
+        $('#personModal').show(); //人物を追加を押したときにモーダルを開く
+    });
+
+    $('.close').click(function() {
+        $('#personModal').hide(); //モーダル内で×を押したときにモーダルを閉じる
+    });
+
+    $('#personForm').submit(function(event) { //フォームが送信されたときに
+        event.preventDefault(); //標準でページがリロードされてしまうので、それを阻止する
+        var newPerson = {
+            project: $('#projectName').val(), //projectというキーにprojectNameで取得した値を関連付ける
+            category: $('#category').val(),
+            company: $('#companyName').val(),
+            relatedDetail: $('#relatedDetail').val(),
+            department: $('#department').val(),
+            section: $('#section').val(),
+            name: $('#personName').val(),
+            image: $('#personImage').val(),
+            description: $('#description').val()
+        };
+
+        if (!projects[newPerson.project]) { //newPerson.projectが存在していなければ
+            projects[newPerson.project] = []; //新しくからの配列を作成し
+        }
+        projects[newPerson.project].push(newPerson); //その中に対応する配列を追加
+
+        addPersonToChart(newPerson); //新し人物を名鑑に追加
+        saveProjects(); //ローカルストレージに保存
+        $('#personModal').hide(); //モーダル内で追加を押したときにモーダルを閉じる
+        this.reset(); //フォームをリセット
+    });
+
+    $(document).on('click', '.toggle', function() {
+        var target = $(this).data('target');
+        $('#' + target).slideToggle();
+        $(this).toggleClass('collapsed');
+    });
+
+    $('#searchBtn').click(function() { //検索ボタンが押されたときに
+        var query = $('#searchBox').val().toLowerCase(); //searchBoxの入力フィールドから検索クエリを取得(検索クエリを小文字に変換)
+        var found = false; //検索結果が見つかったかどうかを追跡
+
+        $('.person').removeClass('highlight');  // 強調表示のリセット
+        $('.person').hide();  // 全ての人物カードを非表示
+
+        $.each(projects, function(project, projectPeople) { //projectsオブジェクトでproject、projectPeopleの配列に対して反復処理をする
+            projectPeople.forEach(function(person) {
+                if (person.name.toLowerCase().includes(query)) { //検索処理を行う。個々のpersonオブジェクトに対して、各人物の名前を小文字に変換し、検索クエリが含まれているかどうかをチェックして、含まれていたら
+                    var projectId = person.project.replace(/\s+/g, '-'); //プロジェクト名の空白をハイフンに置換してprojectIDを生成
+                    var categoryId = person.category.replace(/\s+/g, '-');
+                    var companyId = person.company.replace(/\s+/g, '-');
+                    var departmentId = person.department.replace(/\s+/g, '-');
+                    var sectionId = person.section.replace(/\s+/g, '-');
+
+                    $('#' + projectId).show(); //関連するプロジェクト、カテゴリ、会社、部、課、人物を改装で表示
+                    $('#' + projectId + '-categories').show();
+                    $('#' + categoryId).show();
+                    $('#' + categoryId + '-companies').show();
+                    $('#' + companyId).show();
+                    $('#' + companyId + '-departments').show();
+                    $('#' + departmentId).show();
+                    $('#' + departmentId + '-sections').show();
+                    $('#' + sectionId).show();
+                    $('#' + sectionId + '-people').show();
+
+                    $('#' + sectionId + '-people').find('.person').each(function() { //該当するセクションのすべての人物カードを反復処理
+                        if ($(this).find('h3').text().toLowerCase() === person.name.toLowerCase()) { //一致する人物名を見つけたら
+                            $(this).addClass('highlight').show();  // 強調表示して表示
+                            found = true;
+                        }
+                    });
+                }
+            });
+        });
+
+       　 if (!found) {
+            alert('該当する人物が見つかりませんでした。');
+        }
+    });
+});
+    </script>
+</body>
+</html>
